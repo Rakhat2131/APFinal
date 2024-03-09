@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Review Platform</title>
+</head>
+<body>
+    <h1>Welcome to Book Review Platform</h1>
+    
+    <h2>Add New Book</h2>
+    <form action="/create-book" method="post">
+        <label for="title">Title:</label><br>
+        <input type="text" id="title" name="title" required><br><br>
+        
+        <label for="author">Author:</label><br>
+        <input type="text" id="author" name="author" required><br><br>
+        
+        <label for="description">Description:</label><br>
+        <textarea id="description" name="description" required></textarea><br><br>
+        
+        <button type="submit">Add Book</button>
+    </form>
+    
+    <h2>Books review list</h2>
+    <ul>
+        {{range .Books}}
+        <li>
+            <h3>Title: {{.Title}}</h3>
+            <p>Author: {{.Author}}</p>
+            <p>Description: {{.Description}}</p>
+            <form action="/edit-book" method="get">
+                <label for="title">Title:</label><br>
+                <input type="text" id="title" name="title" value="{{.Title}}" required><br><br>
+                            
+                <label for="author">Author:</label><br>
+                <input type="text" id="author" name="author" value="{{.Author}}" required><br><br>
+                            
+                <label for="description">Description:</label><br>
+                <textarea id="description" name="description" required>{{.Description}}</textarea><br><br>
+            
+                <button class="edit-book" data-id="{{.ID}}" data-title="{{.Title}}" data-author="{{.Author}}" data-description="{{.Description}}">Edit</button>
+            </form>
+            
+            <form action="/delete-book" method="post">
+                <input type="hidden" name="title" value="{{.Title}}">
+                <button type="submit">Delete</button>
+            </form>
+            
+        </li>
+        {{end}}
+    </ul>
+
+    <script>
+       document.addEventListener("DOMContentLoaded", function() {
+    const editBookButtons = document.querySelectorAll(".edit-book");
+
+    editBookButtons.forEach((button) => {
+        button.addEventListener("click", function() {
+            const id = this.dataset.id;
+            const title = this.dataset.title;
+            const author = this.dataset.author;
+            const description = this.dataset.description;
+
+            const updatedBook = {
+                _id: id,
+                title: title,
+                author: author,
+                description: description
+            };
+
+            fetch("/edit-book", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(updatedBook)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "ok") {
+                    const bookElement = document.querySelector(`li[data-book-id="${id}"]`);
+                    bookElement.querySelector("h3").textContent = `Title: ${title}`;
+                    bookElement.querySelector("p:nth-of-type(1)").textContent = `Author: ${author}`;
+                    bookElement.querySelector("p:nth-of-type(2)").textContent = `Description: ${description}`;
+                } else {
+                    console.error("Error updating book:", data.message);
+                }
+            })
+            .catch(error => {
+                console.error("Error updating book:", error);
+            });
+        });
+    });
+});
+
+        </script>
+</body>
+</html>
+
